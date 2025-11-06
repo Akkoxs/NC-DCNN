@@ -286,7 +286,7 @@ history = model_v0_prime.fit(
     verbose = 1
     )"""
 
-"DCNN ARCHITECTURE"
+"DCNN ARCHITECTURE""""""
 model_v0_secundus = models.Sequential([
     #INPUT
     Input(shape = (500, 500, 3)),
@@ -334,6 +334,56 @@ history = model_v0_secundus.fit(
     batch_size = 32,
     callbacks = [early_stop], 
     verbose = 1
+    )"""
+
+"DCNN ARCHITECTURE"
+model_v0_tertius = models.Sequential([
+    #INPUT
+    Input(shape = (500, 500, 3)),
+    #CONVOLUTIONAL BASE 
+    
+    layers.Conv2D(8, (3, 3), activation = 'elu'),
+    layers.MaxPooling2D((2, 2)),
+    
+    layers.Conv2D(16, (3, 3), activation = 'elu'),
+    layers.MaxPooling2D((2, 2)),
+    
+    layers.Conv2D(32, (3, 3), activation = 'elu'),
+    layers.MaxPooling2D((2, 2)),
+    
+    layers.Conv2D(64, (3, 3), activation = 'elu'),
+    layers.MaxPooling2D((2, 2)),
+    
+    #FLATTEN
+    #layers.GlobalAveragePooling2D(), #Trying this instead of Flatten()
+    layers.Flatten(), #switching back to Flatten()
+    
+    #FULLY CONNECTED LAYERS 
+    layers.Dense(64, activation = 'elu', kernel_regularizer=tf.keras.regularizers.l2(1e-4)),
+    layers.Dropout(0.35),
+    layers.Dense(32, activation = 'elu'), #relu activation
+    layers.Dropout(0.35),
+    layers.Dense(3, activation = 'softmax')
+])
+
+
+model_v0_tertius.summary()
+
+"COMPILATION"
+model_v0_tertius.compile(
+                optimizer = tf.keras.optimizers.RMSprop(learning_rate = 1e-3), 
+                loss = "categorical_crossentropy",
+                metrics = ['accuracy']
+                )
+
+"RECORD HISTORY"
+history = model_v0_tertius.fit(
+    train_data,  
+    validation_data = valid_data,
+    epochs = 25, 
+    batch_size = 32,
+    callbacks = [early_stop], 
+    verbose = 1
     )
 
 
@@ -343,7 +393,7 @@ history = model_v0_secundus.fit(
 "----------------------------------------------------------------------------"
 
 #Set model for evaluation here: 
-curr_model = model_v0_secundus
+curr_model = model_v0_tertius
 
 eval_loss, eval_accuracy = curr_model.evaluate(valid_data, verbose = 1)
 print(f"Evaluation Accuracy: {eval_accuracy:.4f} | Evaluation Loss: {eval_loss:.4f}")
@@ -370,7 +420,7 @@ plt.grid(True)
 plt.show()
 
 "SAVING"
-filename = "model_v0_secundus"
+filename = "model_v0_tertius"
 curr_model.save(f"models/{filename}_full.keras")
 with open(f"models/{filename}_history.pkl", "wb") as f:
     pickle.dump(history.history, f)
