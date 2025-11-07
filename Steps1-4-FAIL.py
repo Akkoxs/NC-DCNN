@@ -10,14 +10,17 @@ Created on Thu Oct 30 23:03:50 2025
 "IMPORTS"
 "----------------------------------------------------------------------------"
 import tensorflow as tf
+import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras import datasets, layers, models, Input, optimizers
+from tensorflow.keras import datasets, layers, models, Input
 from tensorflow.keras.utils import image_dataset_from_directory
 import pickle
 
 "----------------------------------------------------------------------------"
 
 "Reproducability & Global Params"
+np.random.seed(23)
+tf.keras.utils.set_random_seed(23)
 #tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 
@@ -38,7 +41,6 @@ train_generator = image_dataset_from_directory(
     image_size = (500, 500),
     interpolation = 'bilinear',
     batch_size = 32,
-    seed = 23,
     color_mode = 'rgb', #denotes 3 channels (RGB)
     shuffle = True,
     verbose = True
@@ -51,7 +53,6 @@ valid_generator = image_dataset_from_directory(
     image_size = (500, 500),
     interpolation = 'bilinear',
     batch_size = 32,
-    seed = 23,
     color_mode = 'rgb', #denotes 3 channels (RGB)
     shuffle = False,
     verbose = True
@@ -120,8 +121,8 @@ model_v1.compile(
 
 "EARLY STOP"
 early_stop = tf.keras.callbacks.EarlyStopping(
-    monitor = "val_loss",
-    patience = 7, #Changed to 3 for v0 and v0_prime, 7 for v0_secundus
+    monitor = "val_accuracy",
+    patience = 3, #Changed to 3 after early stoppage at 1 in first run 
     restore_best_weights = True
     )
 
@@ -152,7 +153,7 @@ history = model_v1.fit(
 #Can Modify the number of filters & neurons within them
 #Can modify loss function & Optimizers 
 
-"DCNN ARCHITECTURE""""""
+"DCNN ARCHITECTURE"
 model_v2 = models.Sequential([
     #INPUT
     Input(shape = (500, 500, 3)),
@@ -199,191 +200,6 @@ history = model_v2.fit(
     batch_size = 32,
     callbacks = [early_stop], #use same early_stop as model_v1
     verbose = 1
-    )"""
-
-
-
-"DCNN ARCHITECTURE""""""
-model_v0 = models.Sequential([
-    #INPUT
-    Input(shape = (500, 500, 3)),
-    #CONVOLUTIONAL BASE 
-    layers.Conv2D(8, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.SeparableConv2D(16, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.SeparableConv2D(32, (3, 3), activation = 'relu'),
-    #FLATTEN
-    layers.GlobalAveragePooling2D(), #Trying this instead of Flatten()
-    #FULLY CONNECTED LAYERS 
-    layers.Dropout(0.2),
-    layers.Dense(32, activation = 'relu'),
-    layers.Dense(3, activation = 'softmax')
-])
-
-
-model_v0.summary()
-
-"COMPILATION"
-model_v0.compile(
-                optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3),
-                loss = "categorical_crossentropy",
-                metrics = ['accuracy']
-                )
-
-"RECORD HISTORY"
-history = model_v0.fit(
-    train_data,  
-    validation_data = valid_data,
-    epochs = 20, 
-    batch_size = 32,
-    callbacks = [early_stop], 
-    verbose = 1
-    )"""
-
-
-"DCNN ARCHITECTURE""""""
-model_v0_prime = models.Sequential([
-    #INPUT
-    Input(shape = (500, 500, 3)),
-    #CONVOLUTIONAL BASE 
-    
-    layers.Conv2D(16, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.SeparableConv2D(32, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.SeparableConv2D(64, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    #FLATTEN
-    layers.GlobalAveragePooling2D(), #Trying this instead of Flatten()
-    
-    #FULLY CONNECTED LAYERS 
-    layers.Dense(64, activation = 'relu', kernel_regularizer=tf.keras.regularizers.l2(1e-4)), #relu activation
-    layers.Dropout(0.5),
-    layers.Dense(3, activation = 'softmax')
-])
-
-
-model_v0_prime.summary()
-
-"COMPILATION"
-model_v0_prime.compile(
-                optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3), 
-                loss = "categorical_crossentropy",
-                metrics = ['accuracy']
-                )
-
-"RECORD HISTORY"
-history = model_v0_prime.fit(
-    train_data,  
-    validation_data = valid_data,
-    epochs = 25, 
-    batch_size = 32,
-    callbacks = [early_stop], 
-    verbose = 1
-    )"""
-
-"DCNN ARCHITECTURE""""""
-model_v0_secundus = models.Sequential([
-    #INPUT
-    Input(shape = (500, 500, 3)),
-    #CONVOLUTIONAL BASE 
-    
-    layers.Conv2D(16, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(32, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(64, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(128, (3, 3), activation = 'relu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    #FLATTEN
-    #layers.GlobalAveragePooling2D(), #Trying this instead of Flatten()
-    layers.Flatten(), #switching back to Flatten()
-    
-    #FULLY CONNECTED LAYERS 
-    layers.Dense(64, activation = 'relu', kernel_regularizer=tf.keras.regularizers.l2(1e-4)),
-    layers.Dropout(0.25),
-    layers.Dense(32, activation = 'relu'), #relu activation
-    layers.Dropout(0.25),
-    layers.Dense(3, activation = 'softmax')
-])
-
-
-model_v0_secundus.summary()
-
-"COMPILATION"
-model_v0_secundus.compile(
-                optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3), 
-                loss = "categorical_crossentropy",
-                metrics = ['accuracy']
-                )
-
-"RECORD HISTORY"
-history = model_v0_secundus.fit(
-    train_data,  
-    validation_data = valid_data,
-    epochs = 25, 
-    batch_size = 32,
-    callbacks = [early_stop], 
-    verbose = 1
-    )"""
-
-"DCNN ARCHITECTURE"
-model_v0_tertius = models.Sequential([
-    #INPUT
-    Input(shape = (500, 500, 3)),
-    #CONVOLUTIONAL BASE 
-    
-    layers.Conv2D(8, (3, 3), activation = 'elu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(16, (3, 3), activation = 'elu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(32, (3, 3), activation = 'elu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    layers.Conv2D(64, (3, 3), activation = 'elu'),
-    layers.MaxPooling2D((2, 2)),
-    
-    #FLATTEN
-    #layers.GlobalAveragePooling2D(), #Trying this instead of Flatten()
-    layers.Flatten(), #switching back to Flatten()
-    
-    #FULLY CONNECTED LAYERS 
-    layers.Dense(64, activation = 'elu', kernel_regularizer=tf.keras.regularizers.l2(1e-4)),
-    layers.Dropout(0.35),
-    layers.Dense(32, activation = 'elu'), #relu activation
-    layers.Dropout(0.35),
-    layers.Dense(3, activation = 'softmax')
-])
-
-
-model_v0_tertius.summary()
-
-"COMPILATION"
-model_v0_tertius.compile(
-                optimizer = tf.keras.optimizers.RMSprop(learning_rate = 1e-3), 
-                loss = "categorical_crossentropy",
-                metrics = ['accuracy']
-                )
-
-"RECORD HISTORY"
-history = model_v0_tertius.fit(
-    train_data,  
-    validation_data = valid_data,
-    epochs = 25, 
-    batch_size = 32,
-    callbacks = [early_stop], 
-    verbose = 1
     )
 
 
@@ -393,7 +209,7 @@ history = model_v0_tertius.fit(
 "----------------------------------------------------------------------------"
 
 #Set model for evaluation here: 
-curr_model = model_v0_tertius
+curr_model = model_v2
 
 eval_loss, eval_accuracy = curr_model.evaluate(valid_data, verbose = 1)
 print(f"Evaluation Accuracy: {eval_accuracy:.4f} | Evaluation Loss: {eval_loss:.4f}")
@@ -420,7 +236,7 @@ plt.grid(True)
 plt.show()
 
 "SAVING"
-filename = "model_v0_tertius"
+filename = "model_v2"
 curr_model.save(f"models/{filename}_full.keras")
 with open(f"models/{filename}_history.pkl", "wb") as f:
     pickle.dump(history.history, f)
