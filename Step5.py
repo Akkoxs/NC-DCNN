@@ -105,10 +105,6 @@ print(f"Accuracy: {variant_accuracy:.4f}\n")
 per_class_accuracy(variant_results, detected_classes, "Variant Model")
 
 
-
-
-per_class_accuracy(baseline_results, detected_classes, "Baseline Model")
-
 "TESTING & PLOTTING FINAL IMAGES"
 "----------------------------------------------------------------------------"
 
